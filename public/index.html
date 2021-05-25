@@ -4,10 +4,43 @@
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Capstone API</title>
+        <title>Tom's Data API v0</title>
+        <style>
+            .content {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                -webkit-transform: translate(-50%, -50%);
+                transform: translate(-50%, -50%);
+            }
+
+            .spinner {
+                border: 2px solid chartreuse;
+                padding: 0 1rem;
+            }
+
+            @media (prefers-reduced-motion: no-preference) {
+                .spinner {
+                    animation: spin infinite 5s cubic-bezier(0.075, 0.82, 0.165, 1);
+                }
+            }
+
+            @keyframes spin {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
     </head>
 
-    <body style="background-color: black">
-        <h1 style="color: chartreuse">I am an API, not a website.</h1>
+    <body style="background-color: #121212">
+        <div class="content">
+            <div class="spinner">
+                <h1 style="color: chartreuse">I am an API, not a website.</h1>
+            </div>
+        </div>
     </body>
 </html>

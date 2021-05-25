@@ -26,9 +26,9 @@ const corsOptions = {
     }
 }
 
-server.use(cors(corsOptions))
 server.use(express.json())
 server.use(express.static(staticPath))
+server.use(cors(corsOptions))
 
 // ##### Global Middleware #####
 const logger = async (req, res, next) => {
