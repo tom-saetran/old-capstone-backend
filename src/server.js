@@ -9,18 +9,30 @@ import { dirname, join } from "path"
 
 import userRouter from "./endpoints/user.js"
 import { errorBadRequest, errorForbidden, errorNotFound, errorDefault } from "./handlers/errors.js"
+import { staticPath, loggerJSON } from "./handlers/files.js"
 
 const server = express()
-const port = 420
+const port = process.env.PORT || 1234
 
-// ##### Initial Setup #####
-server.use(cors())
+// ##### Initial Setups #####
+const whitelist = [process.env.FRONTEND_DEV_URL, process.env.FRONTEND_PROD_URL]
+const corsOptions = {
+    origin: (origin, next) => {
+        if (whitelist.indexOf(origin) !== -1) {
+            next(null, true)
+        } else {
+            next(new Error("CORS!"))
+        }
+    }
+}
+
+server.use(cors(corsOptions))
 server.use(express.json())
-server.use(express.static(join(dirname(fileURLToPath(import.meta.url)), "../public/")))
+server.use(express.static(staticPath))
 
 // ##### Global Middleware #####
 const logger = async (req, res, next) => {
-    const content = await fs.readJSON(join(dirname(fileURLToPath(import.meta.url)), "log.json"))
+    const content = await fs.readJSON(loggerJSON)
 
     content.push({
         method: req.method,
@@ -31,13 +43,13 @@ const logger = async (req, res, next) => {
         _timeStamp: new Date()
     })
 
-    await fs.writeJSON(join(dirname(fileURLToPath(import.meta.url)), "log.json"), content)
+    await fs.writeJSON(loggerJSON, content)
     next()
 }
 server.use(logger)
 
 // ##### Routes #####
-server.use("/user", userRouter)
+server.use("/users", userRouter)
 
 // ##### Error Handlers #####
 server.use(errorBadRequest)
@@ -48,7 +60,5 @@ server.use(errorDefault)
 // ##### Start Server #####
 server.listen(port, () => {
     console.table(listEndpoints(server))
-    console.log("server running on port: ", port)
+    console.log("server is running on port: ", port)
 })
-
-console.log(server.routes)
