@@ -2,7 +2,6 @@ import { Transform } from "stream"
 
 export const map = (fn, options = {}) =>
     new Transform({
-        // By default we are in object mode but this can be overwritten by the user
         objectMode: true,
         ...options,
 
@@ -10,8 +9,8 @@ export const map = (fn, options = {}) =>
             let res
             try {
                 res = fn(chunk)
-            } catch (e) {
-                return callback(e)
+            } catch (error) {
+                return callback(error)
             }
             callback(null, res)
         }
@@ -23,13 +22,13 @@ export const filter = (fn, options = {}) =>
         ...options,
 
         transform(chunk, encoding, callback) {
-            let take
             try {
-                take = fn(chunk)
-            } catch (e) {
-                return callback(e)
+                const parsed = JSON.parse(chunk)
+                const take = parsed.filter(fn)
+                return callback(null, true ? JSON.stringify(take) : undefined)
+            } catch (error) {
+                return callback(error)
             }
-            return callback(null, take ? chunk : undefined)
         }
     })
 
@@ -41,8 +40,8 @@ export const reduce = (fn, acc, options = {}) =>
         transform(chunk, encoding, callback) {
             try {
                 acc = fn(acc, chunk)
-            } catch (e) {
-                return callback(e)
+            } catch (error) {
+                return callback(error)
             }
             return callback()
         },

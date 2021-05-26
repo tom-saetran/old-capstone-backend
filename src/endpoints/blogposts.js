@@ -6,21 +6,20 @@ import { v2 as cloudinary } from "cloudinary"
 import { CloudinaryStorage } from "multer-storage-cloudinary"
 import { pipeline } from "stream"
 import createError from "http-errors"
-import { map, filter } from "../handlers/streamUtils.js"
+import { filter } from "../handlers/streamUtils.js"
+import generatePDFStream from "../handlers/pdfout.js"
 
 const blogPostRouter = express.Router()
 
 blogPostRouter.get("/", (req, res, next) => {
     try {
         let result = readBlogsStream()
-
-        //if (req.query.name) result = result.filter(blog => blog.name.toLowerCase().includes(req.query.name.toLowerCase()))
-
         pipeline(
             result,
-            filter(blog => JSON.parse(blog).name === req.query.name),
+            filter(blog => (req.query.name ? blog.name.toLowerCase().includes(req.query.name) : blog)),
+            filter(blog => (req.query.age ? blog.age === req.query.age : blog)),
             res,
-            err => (err ? console.log(err) : "")
+            err => (err ? createError(500, err) : null)
         )
     } catch (error) {
         next(error)
@@ -30,11 +29,12 @@ blogPostRouter.get("/", (req, res, next) => {
 blogPostRouter.get("/:id", (req, res, next) => {
     try {
         let result = readBlogsStream()
-        result = result.filter(blog => blog.id === req.params.id)
-        if (!result) createError(404, `Blog with id ${req - params.id} was not found.`)
-        else {
-            res.send(result)
-        }
+        pipeline(
+            result,
+            filter(blog => blog.id === req.params.id),
+            res,
+            err => (err ? createError(500, err) : null)
+        )
     } catch (error) {
         next(error)
     }
@@ -59,7 +59,7 @@ const upload = multer({
     storage: cloudinaryStorage
 }).single("cover")
 
-blogPostRouter.post("/cover", upload, (req, res, next) => {
+blogPostRouter.post("/:id/cover", upload, (req, res, next) => {
     try {
         console.log(req.file)
         // TODO: add url to current user
@@ -88,9 +88,8 @@ blogPostRouter.delete("/:id", async (req, res, next) => {
 blogPostRouter.get("/:id/asPDF", async (req, res, next) => {
     try {
         const source = generatePDFStream()
-        const destination = res
-        res.setHeader("Content-Disposition", "attachment; filename=export.pdf")
-        pipeline(source, destination, err => next(err))
+        res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.pdf`)
+        pipeline(source, res, error => next(error))
     } catch (error) {
         next(error)
     }
