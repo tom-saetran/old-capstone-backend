@@ -4,12 +4,10 @@ import uniqid from "uniqid"
 import fs from "fs-extra"
 import listEndpoints from "express-list-endpoints"
 
-import { fileURLToPath } from "url"
-import { dirname, join } from "path"
-
-import userRouter from "./endpoints/user.js"
 import { errorBadRequest, errorForbidden, errorNotFound, errorDefault } from "./handlers/errors.js"
-import { staticPath, loggerJSON } from "./handlers/files.js"
+import { staticPath, loggerJSON, notAnAPI } from "./handlers/files.js"
+import userRouter from "./endpoints/user.js"
+import blogPostRouter from "./endpoints/blogposts.js"
 
 const server = express()
 const port = process.env.PORT || 1234
@@ -27,8 +25,18 @@ const corsOptions = {
 }
 
 server.use(express.json())
-server.use(express.static(staticPath))
+
+// CORS-Disabled index.html
+server.route("/").get((req, res, next) => {
+    try {
+        res.sendFile(notAnAPI)
+    } catch (error) {
+        next(error)
+    }
+})
+
 server.use(cors(corsOptions))
+server.use(express.static(staticPath))
 
 // ##### Global Middleware #####
 const logger = async (req, res, next) => {
@@ -50,6 +58,7 @@ server.use(logger)
 
 // ##### Routes #####
 server.use("/users", userRouter)
+server.use("/blogs", blogPostRouter)
 
 // ##### Error Handlers #####
 server.use(errorBadRequest)
