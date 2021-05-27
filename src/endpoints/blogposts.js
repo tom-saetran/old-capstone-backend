@@ -8,19 +8,29 @@ import { pipeline } from "stream"
 import createError from "http-errors"
 import { filter } from "../handlers/streamUtils.js"
 import generatePDFStream from "../handlers/pdfout.js"
+import { Transform } from "json2csv"
 
 const blogPostRouter = express.Router()
 
 blogPostRouter.get("/", (req, res, next) => {
     try {
-        let result = readBlogsStream()
         pipeline(
-            result,
+            readBlogsStream(),
             filter(blog => (req.query.name ? blog.name.toLowerCase().includes(req.query.name) : blog)),
-            filter(blog => (req.query.age ? blog.age === req.query.age : blog)),
+            filter(blog => (req.query.age ? blog.age === req.query.age : blog)), // etc...
             res,
-            err => (err ? createError(500, err) : null)
+            error => (error ? createError(500, error) : null)
         )
+    } catch (error) {
+        next(error)
+    }
+})
+
+blogPostRouter.get("/asCSV", (req, res, next) => {
+    try {
+        const fields = ["title", "content", "comments", "author", "cover"]
+        res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.csv`)
+        pipeline(readBlogsStream(), new Transform({ fields }), res, error => (error ? createError(500, error) : null))
     } catch (error) {
         next(error)
     }
@@ -28,12 +38,11 @@ blogPostRouter.get("/", (req, res, next) => {
 
 blogPostRouter.get("/:id", (req, res, next) => {
     try {
-        let result = readBlogsStream()
         pipeline(
-            result,
+            readBlogsStream(),
             filter(blog => blog.id === req.params.id),
             res,
-            err => (err ? createError(500, err) : null)
+            error => (error ? createError(500, error) : null)
         )
     } catch (error) {
         next(error)
@@ -85,11 +94,26 @@ blogPostRouter.delete("/:id", async (req, res, next) => {
     }
 })
 
-blogPostRouter.get("/:id/asPDF", async (req, res, next) => {
+blogPostRouter.get("/:id/asPDF", (req, res, next) => {
     try {
-        const source = generatePDFStream()
         res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.pdf`)
-        pipeline(source, res, error => next(error))
+        pipeline(generatePDFStream(), res, error => (error ? createError(500, error) : null))
+    } catch (error) {
+        next(error)
+    }
+})
+
+blogPostRouter.get("/:id/asCSV", (req, res, next) => {
+    try {
+        const fields = ["title", "content", "comments", "author", "cover"]
+        res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.csv`)
+        pipeline(
+            readBlogsStream(),
+            filter(user => user.id === req.params.id),
+            new Transform({ fields }),
+            res,
+            error => (error ? createError(500, error) : null)
+        )
     } catch (error) {
         next(error)
     }

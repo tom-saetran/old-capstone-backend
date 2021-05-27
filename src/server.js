@@ -3,11 +3,17 @@ import cors from "cors"
 import uniqid from "uniqid"
 import fs from "fs-extra"
 import listEndpoints from "express-list-endpoints"
+import swaggerUI from "swagger-ui-express"
+import YAML from "yamljs"
 
 import { errorBadRequest, errorForbidden, errorNotFound, errorDefault } from "./handlers/errors.js"
 import { staticPath, loggerJSON, notAnAPI } from "./handlers/files.js"
 import userRouter from "./endpoints/user.js"
 import blogPostRouter from "./endpoints/blogposts.js"
+import sendEmailTest from "./handlers/email.js"
+import { ymlAPI } from "./handlers/files.js"
+
+import createError from "http-errors"
 
 const server = express()
 const port = process.env.PORT || 1234
@@ -19,17 +25,29 @@ const corsOptions = {
         if (whitelist.indexOf(origin) !== -1) {
             next(null, true)
         } else {
-            next(new Error("CORS!"))
+            next(createError(501, "CORS!"), true)
         }
     }
 }
 
 server.use(express.json())
 
-// CORS-Disabled index.html
+// CORS-Disabled routes
 server.route("/").get((req, res, next) => {
     try {
         res.sendFile(notAnAPI)
+    } catch (error) {
+        next(error)
+    }
+})
+
+server.use("/docs", swaggerUI.serve, swaggerUI.setup(YAML.load(ymlAPI)))
+
+// ### EMAIL TEST
+server.route("/emailtest").get(async (req, res, next) => {
+    try {
+        await sendEmailTest("tom@tomsdata.no")
+        res.send("OK?")
     } catch (error) {
         next(error)
     }

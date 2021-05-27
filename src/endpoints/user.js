@@ -5,6 +5,7 @@ import { userSignup } from "../handlers/validators.js"
 import { v2 as cloudinary } from "cloudinary"
 import { CloudinaryStorage } from "multer-storage-cloudinary"
 import { pipeline } from "stream"
+import { Transform } from "json2csv"
 
 const userRouter = express.Router()
 
@@ -16,6 +17,16 @@ userRouter.get("/", async (req, res, next) => {
         if (req.query.age) result = result.filter(user => user.age === req.query.age)
 
         pipeline(result, res, err => console.log(err))
+    } catch (error) {
+        next(error)
+    }
+})
+
+userRouter.get("/asCSV", (req, res, next) => {
+    try {
+        const fields = ["name", "surname"]
+        res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.csv`)
+        pipeline(readUsersStream(), new Transform({ fields }), res, error => (error ? createError(500, error) : null))
     } catch (error) {
         next(error)
     }
