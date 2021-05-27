@@ -22,10 +22,14 @@ const port = process.env.PORT || 1234
 const whitelist = [process.env.FRONTEND_DEV_URL, process.env.FRONTEND_PROD_URL]
 const corsOptions = {
     origin: (origin, next) => {
-        if (whitelist.indexOf(origin) !== -1) {
-            next(null, true)
-        } else {
-            next(createError(501, "CORS!"), true)
+        try {
+            if (whitelist.indexOf(origin) !== -1) {
+                next(null, true)
+            } else {
+                next(createError(400, "Cross-Site Origin Policy blocked your request"), true)
+            }
+        } catch (error) {
+            next(error)
         }
     }
 }
@@ -43,18 +47,21 @@ server.route("/").get((req, res, next) => {
 
 server.use("/docs", swaggerUI.serve, swaggerUI.setup(YAML.load(ymlAPI)))
 
+server.use(cors(corsOptions))
+server.use(express.static(staticPath))
+
 // ### EMAIL TEST
-server.route("/emailtest").get(async (req, res, next) => {
+server.route("/emailtest").post(async (req, res, next) => {
     try {
-        await sendEmailTest("tom@tomsdata.no")
-        res.send("OK?")
+        if (!req.body.email) next(createError(400, "Email not supplied"))
+        else {
+            await sendEmailTest(req.body.email)
+            res.send("Sent")
+        }
     } catch (error) {
         next(error)
     }
 })
-
-server.use(cors(corsOptions))
-server.use(express.static(staticPath))
 
 // ##### Global Middleware #####
 const logger = async (req, res, next) => {

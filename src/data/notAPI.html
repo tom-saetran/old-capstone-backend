@@ -4,14 +4,22 @@
         <meta charset="UTF-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Tom's Data API v0</title>
+        <title>Tom's Data API</title>
         <style>
+            .green {
+                color: chartreuse;
+            }
+
             .content {
                 position: absolute;
                 left: 50%;
                 top: 50%;
                 -webkit-transform: translate(-50%, -50%);
                 transform: translate(-50%, -50%);
+            }
+
+            .text-center {
+                text-align: center;
             }
 
             .spinner {
@@ -37,9 +45,10 @@
     </head>
 
     <body style="background-color: #121212">
+        <div class="text-center green">Click <a href="/docs">here</a> for documentation.</div>
         <div class="content">
             <div class="spinner">
-                <h1 style="color: chartreuse">I am an API, not a website.</h1>
+                <h1 class="green">I am an API, not a website.</h1>
             </div>
         </div>
     </body>

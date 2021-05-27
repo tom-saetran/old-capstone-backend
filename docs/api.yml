@@ -21,11 +21,10 @@ paths:
       tags:
       - user
       summary: Get all users as JSON
-      operationId: getAll
-      
+      operationId: getUsers
       responses:
         200:
-          description: A JSON with all users gets passed to the client
+          description: OK
     post:
       tags:
       - user
@@ -48,8 +47,8 @@ paths:
       tags:
       - user
       summary: Get user by id
-      description: Gets a JSON object containing all users
-      operationId: getUserByName
+      description: Gets the specified user by id
+      operationId: getUser
       parameters:
       - name: id
         in: path
