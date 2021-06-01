@@ -9,18 +9,21 @@ import createError from "http-errors"
 import { filter } from "../handlers/streamUtils.js"
 import generatePDFStream from "../handlers/pdfout.js"
 import { Transform } from "json2csv"
+import blogModel from "../schema/blog.js"
 
 const blogPostRouter = express.Router()
 
-blogPostRouter.get("/", (req, res, next) => {
+blogPostRouter.get("/", async (req, res, next) => {
     try {
-        pipeline(
+        const result = await blogModel.find() // find all
+        res.status(200).send(result)
+        /*pipeline(
             readBlogsStream(),
             filter(blog => (req.query.name ? blog.name.toLowerCase().includes(req.query.name) : blog)),
             filter(blog => (req.query.age ? blog.age === req.query.age : blog)), // etc...
             res,
             error => (error ? createError(500, error) : null)
-        )
+        )*/
     } catch (error) {
         next(error)
     }
@@ -36,14 +39,11 @@ blogPostRouter.get("/asCSV", (req, res, next) => {
     }
 })
 
-blogPostRouter.get("/:id", (req, res, next) => {
+blogPostRouter.get("/:id", async (req, res, next) => {
     try {
-        pipeline(
-            readBlogsStream(),
-            filter(blog => blog.id === req.params.id),
-            res,
-            error => (error ? createError(500, error) : null)
-        )
+        const result = await blogModel.findById(req.params.id)
+        if (!result) createError(400, "id not found")
+        else res.status(200).send(result)
     } catch (error) {
         next(error)
     }
@@ -51,7 +51,9 @@ blogPostRouter.get("/:id", (req, res, next) => {
 
 blogPostRouter.post("/", blogValidator, async (req, res, next) => {
     try {
-        res.status(501).send()
+        const newUser = new blogModel(req.body) // validation happens here against schema
+        const { _id } = await newUser.save()
+        res.status(201).send(_id)
     } catch (error) {
         next(error)
     }
@@ -80,7 +82,9 @@ blogPostRouter.post("/:id/cover", upload, (req, res, next) => {
 
 blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
     try {
-        res.status(501).send()
+        const result = await blogModel.findByIdAndUpdate(req.params.id, req.body, { runValidators: true, new: true, useFindAndModify: false })
+        if (result) res.status(200).send(result)
+        else createError(400, "ID not found")
     } catch (error) {
         next(error)
     }
@@ -88,7 +92,9 @@ blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
 
 blogPostRouter.delete("/:id", async (req, res, next) => {
     try {
-        res.status(501).send()
+        const result = await blogModel.findByIdAndDelete(req.params.id)
+        if (result) res.status(200).send("Deleted")
+        else createError(400, "ID not found")
     } catch (error) {
         next(error)
     }

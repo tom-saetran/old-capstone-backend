@@ -5,11 +5,12 @@ import fs from "fs-extra"
 import listEndpoints from "express-list-endpoints"
 import swaggerUI from "swagger-ui-express"
 import YAML from "yamljs"
+import mongoose from "mongoose"
 
 import { errorBadRequest, errorForbidden, errorNotFound, errorDefault } from "./handlers/errors.js"
 import { staticPath, loggerJSON, notAnAPI } from "./handlers/files.js"
 import userRouter from "./endpoints/user.js"
-import blogPostRouter from "./endpoints/blogposts.js"
+import blogPostRouter from "./endpoints/blog.js"
 import sendEmailTest from "./handlers/email.js"
 import { ymlAPI } from "./handlers/files.js"
 
@@ -92,7 +93,9 @@ server.use(errorNotFound)
 server.use(errorDefault)
 
 // ##### Start Server #####
-server.listen(port, () => {
-    console.table(listEndpoints(server))
-    console.log("server is running on port: ", port)
+mongoose.connect(process.env.MONGO_CONNECTION, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
+    server.listen(port, () => {
+        console.table(listEndpoints(server))
+        console.log("server is running on port: ", port)
+    })
 })
