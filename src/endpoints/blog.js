@@ -69,13 +69,12 @@ const upload = multer({
 
 blogPostRouter.post("/:id/cover", upload, async (req, res, next) => {
     try {
-        console.log(req.file)
         const result = await blogModel.findByIdAndUpdate(
             req.params.id,
-            { $set: { cover: req.file.path } },
+            { cover: req.file.path },
             { useFindAndModify: false }
-        ) // no work
-        if (result) res.status(200).send(req.file.path)
+        )
+        if (result) res.status(200).send(result)
         else createError(400, "ID not found")
     } catch (error) {
         next(error)
