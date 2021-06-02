@@ -1,14 +1,9 @@
 import express from "express"
 import multer from "multer"
-import { readBlogsStream } from "../handlers/files.js"
 import { blogValidator } from "../handlers/validators.js"
 import { v2 as cloudinary } from "cloudinary"
 import { CloudinaryStorage } from "multer-storage-cloudinary"
-import { pipeline } from "stream"
 import createError from "http-errors"
-import { filter } from "../handlers/streamUtils.js"
-import generatePDFStream from "../handlers/pdfout.js"
-import { Transform } from "json2csv"
 import blogModel from "../schema/blog.js"
 import q2m from "query-to-mongo"
 
@@ -18,7 +13,7 @@ blogPostRouter.get("/", async (req, res, next) => {
     try {
         const query = q2m(req.query)
         const total = await blogModel.countDocuments(query.criteria)
-        const limit = 2
+        const limit = 5
         const result = await blogModel
             .find(query.criteria)
             .sort(query.options.sort)
@@ -34,7 +29,7 @@ blogPostRouter.get("/asCSV", (req, res, next) => {
     try {
         const fields = ["title", "content", "comments", "author", "cover"]
         res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.csv`)
-        pipeline(readBlogsStream(), new Transform({ fields }), res, error => (error ? createError(500, error) : null))
+        //pipeline(readBlogsStream(), new Transform({ fields }), res, error => (error ? createError(500, error) : null))
     } catch (error) {
         next(error)
     }
@@ -114,7 +109,7 @@ blogPostRouter.delete("/:id", async (req, res, next) => {
 blogPostRouter.get("/:id/asPDF", (req, res, next) => {
     try {
         res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.pdf`)
-        pipeline(generatePDFStream(), res, error => (error ? createError(500, error) : null))
+        //pipeline(generatePDFStream(), res, error => (error ? createError(500, error) : null))
     } catch (error) {
         next(error)
     }
@@ -124,13 +119,13 @@ blogPostRouter.get("/:id/asCSV", (req, res, next) => {
     try {
         const fields = ["title", "content", "comments", "author", "cover"]
         res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.csv`)
-        pipeline(
+        /*pipeline(
             readBlogsStream(),
             filter(user => user.id === req.params.id),
             new Transform({ fields }),
             res,
             error => (error ? createError(500, error) : null)
-        )
+        )*/
     } catch (error) {
         next(error)
     }
@@ -142,10 +137,10 @@ blogPostRouter.post("/:id", async (req, res, next) => {
         if (blogPost) {
             const result = await blogModel.findByIdAndUpdate(
                 req.params.id,
-                { $push: { comments: { ...req.body, date: new Date() } } },
+                { $push: { comments: req.body } },
                 { runValidators: true, new: true, useFindAndModify: false }
             )
-            if (result) res.send(result)
+            if (result) res.send(result.comments[result.comments.length - 1])
             else createError(404, `Failed to add comment to ${req.params.id}`)
         } else createError(404, `Blog Post ${req.params.id} not found`)
     } catch (error) {

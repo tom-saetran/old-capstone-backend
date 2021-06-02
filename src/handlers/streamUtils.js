@@ -5,7 +5,7 @@ export const map = (fn, options = {}) =>
         objectMode: true,
         ...options,
 
-        transform(chunk, encoding, callback) {
+        transform(chunk, _, callback) {
             let res
             try {
                 res = fn(chunk)
@@ -21,7 +21,7 @@ export const filter = (fn, options = {}) =>
         objectMode: true,
         ...options,
 
-        transform(chunk, encoding, callback) {
+        transform(chunk, _, callback) {
             try {
                 const parsed = JSON.parse(chunk)
                 const take = parsed.filter(fn)
@@ -37,7 +37,7 @@ export const reduce = (fn, acc, options = {}) =>
         objectMode: true,
         ...options,
 
-        transform(chunk, encoding, callback) {
+        transform(chunk, _, callback) {
             try {
                 acc = fn(acc, chunk)
             } catch (error) {

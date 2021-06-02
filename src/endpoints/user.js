@@ -1,11 +1,8 @@
 import express from "express"
 import multer from "multer"
-import { readUsersStream } from "../handlers/files.js"
 import { userSignup } from "../handlers/validators.js"
 import { v2 as cloudinary } from "cloudinary"
 import { CloudinaryStorage } from "multer-storage-cloudinary"
-import { pipeline } from "stream"
-import { Transform } from "json2csv"
 import q2m from "query-to-mongo"
 
 import userModel from "../schema/user.js"
@@ -32,7 +29,7 @@ userRouter.get("/asCSV", (req, res, next) => {
     try {
         const fields = ["name", "surname"]
         res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.csv`)
-        pipeline(readUsersStream(), new Transform({ fields }), res, error => (error ? createError(500, error) : null))
+        //pipeline(readUsersStream(), new Transform({ fields }), res, error => (error ? createError(500, error) : null))
     } catch (error) {
         next(error)
     }
@@ -113,7 +110,7 @@ userRouter.post("/:id/avatar", upload, async (req, res, next) => {
 userRouter.get("/:id/asPDF", (req, res, next) => {
     try {
         res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.pdf`)
-        pipeline(generatePDFStream(), res, error => (error ? createError(500, error) : null))
+        //pipeline(generatePDFStream(), res, error => (error ? createError(500, error) : null))
     } catch (error) {
         next(error)
     }
