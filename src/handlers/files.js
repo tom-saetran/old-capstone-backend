@@ -8,6 +8,7 @@ const usersJSON = join(dirname(fileURLToPath(import.meta.url)), "../data/users.j
 const blogsJSON = join(dirname(fileURLToPath(import.meta.url)), "../data/blogs.json")
 export const notAnAPI = join(dirname(fileURLToPath(import.meta.url)), "../data/notAPI.html")
 export const ymlAPI = join(dirname(fileURLToPath(import.meta.url)), "../../docs/api.yml")
+export const jsonAPI = join(dirname(fileURLToPath(import.meta.url)), "../../docs/api.json")
 
 export const readUsersStream = () => createReadStream(usersJSON)
 export const readBlogsStream = () => createReadStream(blogsJSON)

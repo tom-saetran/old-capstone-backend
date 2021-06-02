@@ -10,20 +10,21 @@ import { filter } from "../handlers/streamUtils.js"
 import generatePDFStream from "../handlers/pdfout.js"
 import { Transform } from "json2csv"
 import blogModel from "../schema/blog.js"
+import q2m from "query-to-mongo"
 
 const blogPostRouter = express.Router()
 
 blogPostRouter.get("/", async (req, res, next) => {
     try {
-        const result = await blogModel.find() // find all
-        res.status(200).send(result)
-        /*pipeline(
-            readBlogsStream(),
-            filter(blog => (req.query.name ? blog.name.toLowerCase().includes(req.query.name) : blog)),
-            filter(blog => (req.query.age ? blog.age === req.query.age : blog)), // etc...
-            res,
-            error => (error ? createError(500, error) : null)
-        )*/
+        const query = q2m(req.query)
+        const total = await blogModel.countDocuments(query.criteria)
+        const limit = 25
+        const result = await blogModel
+            .find(query.criteria)
+            .sort(query.options.sort)
+            .skip(query.options.skip ? (query.options.skip < limit ? query.options.skip : limit) : limit)
+            .limit(query.options.limit ? (query.options.skip < limit ? query.options.skip : limit) : limit)
+        res.status(200).send({ links: query.links("/blogs", total), total, result })
     } catch (error) {
         next(error)
     }
@@ -51,7 +52,8 @@ blogPostRouter.get("/:id", async (req, res, next) => {
 
 blogPostRouter.post("/", blogValidator, async (req, res, next) => {
     try {
-        const newUser = new blogModel(req.body) // validation happens here against schema
+        const entry = req.body
+        const newUser = new blogModel(entry)
         const { _id } = await newUser.save()
         res.status(201).send(_id)
     } catch (error) {
@@ -70,11 +72,16 @@ const upload = multer({
     storage: cloudinaryStorage
 }).single("cover")
 
-blogPostRouter.post("/:id/cover", upload, (req, res, next) => {
+blogPostRouter.post("/:id/cover", upload, async (req, res, next) => {
     try {
         console.log(req.file)
-        // TODO: add url to current user
-        res.status(200).send("OK")
+        const result = await blogModel.findByIdAndUpdate(
+            req.params.id,
+            { $set: { cover: req.file.path } },
+            { useFindAndModify: false }
+        ) // no work
+        if (result) res.status(200).send(req.file.path)
+        else createError(400, "ID not found")
     } catch (error) {
         next(error)
     }
@@ -82,7 +89,11 @@ blogPostRouter.post("/:id/cover", upload, (req, res, next) => {
 
 blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
     try {
-        const result = await blogModel.findByIdAndUpdate(req.params.id, req.body, { runValidators: true, new: true, useFindAndModify: false })
+        const result = await blogModel.findByIdAndUpdate(
+            req.params.id,
+            { ...req.body, updatedAt: new Date() },
+            { runValidators: true, new: true, useFindAndModify: false }
+        )
         if (result) res.status(200).send(result)
         else createError(400, "ID not found")
     } catch (error) {
@@ -92,7 +103,7 @@ blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
 
 blogPostRouter.delete("/:id", async (req, res, next) => {
     try {
-        const result = await blogModel.findByIdAndDelete(req.params.id)
+        const result = await blogModel.findByIdAndRemove(req.params.id, { useFindAndModify: false })
         if (result) res.status(200).send("Deleted")
         else createError(400, "ID not found")
     } catch (error) {
@@ -120,6 +131,87 @@ blogPostRouter.get("/:id/asCSV", (req, res, next) => {
             res,
             error => (error ? createError(500, error) : null)
         )
+    } catch (error) {
+        next(error)
+    }
+})
+
+blogPostRouter.post("/:id", async (req, res, next) => {
+    try {
+        const blogPost = await BookModel.findById(req.query.id, { _id: 0 })
+
+        if (blogPost) {
+            const result = await UserModel.findByIdAndUpdate(
+                req.params.id,
+                { $push: { comments: req.body } },
+                { runValidators: true, new: true, useFindAndModify: false }
+            )
+            if (result) res.send(result)
+            else createError(404, `Failed to add comment to ${req.params.id}`)
+        } else createError(404, `Blog Post ${req.params.id} not found`)
+    } catch (error) {
+        next(error)
+    }
+})
+
+blogPostRouter.get("/:id/comments/", async (req, res, next) => {
+    try {
+        const query = q2m(req.query)
+        const total = await blogModel.comments.countDocuments(query.criteria)
+        const limit = 5
+        const result = await blogModel.comments
+            .find(query.criteria)
+            .sort(query.options.sort)
+            .skip(query.options.skip ? (query.options.skip < limit ? query.options.skip : limit) : limit)
+            .limit(query.options.limit ? (query.options.skip < limit ? query.options.skip : limit) : limit)
+
+        res.status(200).send({ links: query.links(`/${req.params.id}/comments`, total), total, result })
+    } catch (error) {
+        next(error)
+    }
+})
+
+blogPostRouter.get("/:id/comments/:commentId", async (req, res, next) => {
+    try {
+        const blogPost = await blogModel.findOne(
+            { _id: req.params.id },
+            { comments: { $elemMatch: { _id: req.params.commentId } } }
+        )
+
+        if (blogPost) {
+            if (blogPost.comments && blogPost.comments.length > 0) res.send(blogPost.comments[0])
+            else createError(404, `Comment ${req.params.commentId} not found`)
+        } else createError(404, `Blog Post ${req.params.id} not found`)
+    } catch (error) {
+        next(error)
+    }
+})
+
+blogPostRouter.delete("/:id/comment/:commentId", async (req, res, next) => {
+    try {
+        const blogPost = await blogModel.findByIdAndUpdate(
+            req.params.id,
+            { $pull: { comments: { _id: req.params.commentId } } },
+            { new: true, useFindAndModify: false }
+        )
+
+        if (blogPost) res.send(blogPost)
+        else createError(404, `Blog Post ${req.params.id} not found`)
+    } catch (error) {
+        next(error)
+    }
+})
+
+blogPostRouter.put("/:id/comment/:commentId", async (req, res, next) => {
+    try {
+        const blogPost = await blogModel.findOneAndUpdate(
+            { _id: req.params.id, "comments._id": req.params.commentId },
+            { $set: { "comments.$": req.body } },
+            { runValidators: true, new: true, useFindAndModify: false }
+        )
+
+        if (blogPost) res.send(blogPost)
+        else createError(404, `Blog Post ${req.params.id} not found`)
     } catch (error) {
         next(error)
     }

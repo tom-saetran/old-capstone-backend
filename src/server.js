@@ -12,7 +12,7 @@ import { staticPath, loggerJSON, notAnAPI } from "./handlers/files.js"
 import userRouter from "./endpoints/user.js"
 import blogPostRouter from "./endpoints/blog.js"
 import sendEmailTest from "./handlers/email.js"
-import { ymlAPI } from "./handlers/files.js"
+import { ymlAPI, jsonAPI } from "./handlers/files.js"
 
 import createError from "http-errors"
 
@@ -46,7 +46,10 @@ server.route("/").get((req, res, next) => {
     }
 })
 
+console.log(ymlAPI)
+console.log(jsonAPI)
 server.use("/docs", swaggerUI.serve, swaggerUI.setup(YAML.load(ymlAPI)))
+//server.use("/docs", swaggerUI.serve, swaggerUI.setup( YAML.load( YAML.parse( JSON.stringify( jsonAPI)))))
 
 server.use(cors(corsOptions))
 server.use(express.static(staticPath))
