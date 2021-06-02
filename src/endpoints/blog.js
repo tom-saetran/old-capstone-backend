@@ -18,12 +18,12 @@ blogPostRouter.get("/", async (req, res, next) => {
     try {
         const query = q2m(req.query)
         const total = await blogModel.countDocuments(query.criteria)
-        const limit = 25
+        const limit = 2
         const result = await blogModel
             .find(query.criteria)
             .sort(query.options.sort)
             .skip(query.options.skip || 0)
-            .limit(query.options.limit ? (query.options.limit < limit ? query.options.limit : limit) : limit)
+            .limit(query.options.limit && query.options.limit < limit ? query.options.limit : limit)
         res.status(200).send({ links: query.links("/blogs", total), total, result })
     } catch (error) {
         next(error)
