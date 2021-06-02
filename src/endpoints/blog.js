@@ -23,7 +23,7 @@ blogPostRouter.get("/", async (req, res, next) => {
             .find(query.criteria)
             .sort(query.options.sort)
             .skip(query.options.skip || 0)
-            .limit(query.options.limit ? (query.options.skip < limit ? query.options.skip : limit) : limit)
+            .limit(query.options.limit ? (query.options.limit < limit ? query.options.limit : limit) : limit)
         res.status(200).send({ links: query.links("/blogs", total), total, result })
     } catch (error) {
         next(error)
