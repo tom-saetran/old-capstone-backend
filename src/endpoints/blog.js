@@ -22,7 +22,7 @@ blogPostRouter.get("/", async (req, res, next) => {
         const result = await blogModel
             .find(query.criteria)
             .sort(query.options.sort)
-            .skip(query.options.skip ? (query.options.skip < limit ? query.options.skip : limit) : limit)
+            .skip(query.options.skip || 0)
             .limit(query.options.limit ? (query.options.skip < limit ? query.options.skip : limit) : limit)
         res.status(200).send({ links: query.links("/blogs", total), total, result })
     } catch (error) {
@@ -138,12 +138,11 @@ blogPostRouter.get("/:id/asCSV", (req, res, next) => {
 
 blogPostRouter.post("/:id", async (req, res, next) => {
     try {
-        const blogPost = await BookModel.findById(req.query.id, { _id: 0 })
-
+        const blogPost = await blogModel.findById(req.params.id)
         if (blogPost) {
-            const result = await UserModel.findByIdAndUpdate(
+            const result = await blogModel.findByIdAndUpdate(
                 req.params.id,
-                { $push: { comments: req.body } },
+                { $push: { comments: { ...req.body, date: new Date() } } },
                 { runValidators: true, new: true, useFindAndModify: false }
             )
             if (result) res.send(result)
@@ -156,16 +155,12 @@ blogPostRouter.post("/:id", async (req, res, next) => {
 
 blogPostRouter.get("/:id/comments/", async (req, res, next) => {
     try {
-        const query = q2m(req.query)
-        const total = await blogModel.comments.countDocuments(query.criteria)
-        const limit = 5
-        const result = await blogModel.comments
-            .find(query.criteria)
-            .sort(query.options.sort)
-            .skip(query.options.skip ? (query.options.skip < limit ? query.options.skip : limit) : limit)
-            .limit(query.options.limit ? (query.options.skip < limit ? query.options.skip : limit) : limit)
-
-        res.status(200).send({ links: query.links(`/${req.params.id}/comments`, total), total, result })
+        const blogPost = await blogModel.findById(req.params.id, {
+            comments: 1,
+            _id: 0
+        })
+        if (blogPost) res.send(blogPost.comments)
+        else createError(404, `Blog Post ${req.params.id} not found`)
     } catch (error) {
         next(error)
     }

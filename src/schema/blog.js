@@ -18,8 +18,7 @@ const blogSchema = new Schema(
         content: { type: String, required: true },
         comments: [
             {
-                content: String,
-                author: String,
+                comment: String,
                 date: Date
             }
         ]
