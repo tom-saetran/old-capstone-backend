@@ -81,9 +81,7 @@ userRouter.delete("/:id", async (req, res, next) => {
 
 const cloudinaryStorage = new CloudinaryStorage({
     cloudinary,
-    params: {
-        folder: "avatars"
-    }
+    params: { folder: "avatars" }
 })
 
 const upload = multer({

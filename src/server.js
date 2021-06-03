@@ -37,7 +37,7 @@ const corsOptions = {
     }
 }
 
-server.use(express.json())
+server.use(express.json()) // Unlocks reading JSON in req.body. Without it, req.body would be undefined.
 
 // CORS-Disabled routes
 server.route("/").get((req, res, next) => {
@@ -59,7 +59,7 @@ server.use(express.static(staticPath))
 // ### EMAIL TEST
 server.route("/emailtest").post(async (req, res, next) => {
     try {
-        if (!req.body.email) next(createError(400, "Email not supplied"))
+        if (!req.body.email) createError(400, "Email not supplied")
         else {
             await sendEmailTest(req.body.email)
             res.send("Sent")
