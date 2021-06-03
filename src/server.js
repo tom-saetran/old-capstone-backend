@@ -16,6 +16,8 @@ import { ymlAPI, jsonAPI } from "./handlers/files.js"
 
 import createError from "http-errors"
 
+import logModel from "./schema/log.js"
+
 const server = express()
 const port = process.env.PORT || 1234
 
@@ -46,8 +48,8 @@ server.route("/").get((req, res, next) => {
     }
 })
 
-console.log(ymlAPI)
-console.log(jsonAPI)
+//console.log(ymlAPI)
+//console.log(jsonAPI)
 server.use("/docs", swaggerUI.serve, swaggerUI.setup(YAML.load(ymlAPI)))
 //server.use("/docs", swaggerUI.serve, swaggerUI.setup( YAML.load( YAML.parse( JSON.stringify( jsonAPI)))))
 
@@ -69,7 +71,20 @@ server.route("/emailtest").post(async (req, res, next) => {
 
 // ##### Global Middleware #####
 const logger = async (req, res, next) => {
-    const content = await fs.readJSON(loggerJSON)
+    try {
+        const entry = new logModel({
+            method: req.method,
+            query: req.query,
+            params: req.params,
+            body: req.body
+        })
+        await entry.save()
+        next()
+    } catch (error) {
+        next(error)
+    }
+
+    /*const content = await fs.readJSON(loggerJSON)
 
     content.push({
         method: req.method,
@@ -81,7 +96,7 @@ const logger = async (req, res, next) => {
     })
 
     await fs.writeJSON(loggerJSON, content)
-    next()
+    next()*/
 }
 server.use(logger)
 

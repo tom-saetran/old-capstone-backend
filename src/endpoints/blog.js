@@ -19,17 +19,8 @@ blogPostRouter.get("/", async (req, res, next) => {
             .sort(query.options.sort)
             .skip(query.options.skip || 0)
             .limit(query.options.limit && query.options.limit < limit ? query.options.limit : limit)
+            .populate("author")
         res.status(200).send({ links: query.links("/blogs", total), total, result })
-    } catch (error) {
-        next(error)
-    }
-})
-
-blogPostRouter.get("/asCSV", (req, res, next) => {
-    try {
-        const fields = ["title", "content", "comments", "author", "cover"]
-        res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.csv`)
-        //pipeline(readBlogsStream(), new Transform({ fields }), res, error => (error ? createError(500, error) : null))
     } catch (error) {
         next(error)
     }
@@ -37,7 +28,7 @@ blogPostRouter.get("/asCSV", (req, res, next) => {
 
 blogPostRouter.get("/:id", async (req, res, next) => {
     try {
-        const result = await blogModel.findById(req.params.id)
+        const result = await blogModel.findById(req.params.id).populate("author")
         if (!result) createError(400, "id not found")
         else res.status(200).send(result)
     } catch (error) {
@@ -58,9 +49,7 @@ blogPostRouter.post("/", blogValidator, async (req, res, next) => {
 
 const cloudinaryStorage = new CloudinaryStorage({
     cloudinary,
-    params: {
-        folder: "avatars"
-    }
+    params: { folder: "avatars" }
 })
 
 const upload = multer({
@@ -109,22 +98,6 @@ blogPostRouter.get("/:id/asPDF", (req, res, next) => {
     try {
         res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.pdf`)
         //pipeline(generatePDFStream(), res, error => (error ? createError(500, error) : null))
-    } catch (error) {
-        next(error)
-    }
-})
-
-blogPostRouter.get("/:id/asCSV", (req, res, next) => {
-    try {
-        const fields = ["title", "content", "comments", "author", "cover"]
-        res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.csv`)
-        /*pipeline(
-            readBlogsStream(),
-            filter(user => user.id === req.params.id),
-            new Transform({ fields }),
-            res,
-            error => (error ? createError(500, error) : null)
-        )*/
     } catch (error) {
         next(error)
     }
@@ -195,7 +168,7 @@ blogPostRouter.put("/:id/comment/:commentId", async (req, res, next) => {
     try {
         const blogPost = await blogModel.findOneAndUpdate(
             { _id: req.params.id, "comments._id": req.params.commentId },
-            { $set: { "comments.$": { ...req.body, date: new Date() } } },
+            { $set: { "comments.$": req.body } },
             { runValidators: true, new: true, useFindAndModify: false }
         )
 

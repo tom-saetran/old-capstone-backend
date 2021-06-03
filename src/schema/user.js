@@ -5,19 +5,8 @@ const { Schema, model } = mongoose
 const userSchema = new Schema(
     {
         name: { type: String, required: true },
-        surname: String,
-        email: String,
-        age: Number,
-        professions: [String],
-        purchaseHistory: [
-            {
-                asin: String,
-                title: String,
-                price: Number,
-                category: String,
-                date: Date
-            }
-        ]
+        surname: { type: String, required: true },
+        avatar: { type: String, default: "https://via.placeholder.com/420?text=User%20Avatar" }
     },
     { timestamps: true }
 )

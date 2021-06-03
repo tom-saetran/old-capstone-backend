@@ -12,7 +12,7 @@ const userRouter = express.Router()
 userRouter.get("/", async (req, res, next) => {
     try {
         const query = q2m(req.query)
-        const total = await userodel.countDocuments(query.criteria)
+        const total = await userModel.countDocuments(query.criteria)
         const limit = 25
         const result = await userModel
             .find(query.criteria)
