@@ -17,7 +17,7 @@ userRouter.get("/", async (req, res, next) => {
         const result = await userModel
             .find(query.criteria)
             .sort(query.options.sort)
-            .skip(query.options || 0)
+            .skip(query.options.skip || 0)
             .limit(query.options.limit && query.options.limit < limit ? query.options.limit : limit)
         res.status(200).send({ links: query.links("/users", total), total, result })
     } catch (error) {
