@@ -109,7 +109,7 @@ blogPostRouter.post("/:id", async (req, res, next) => {
         if (blogPost) {
             const result = await blogModel.findByIdAndUpdate(
                 req.params.id,
-                { $push: { comments: req.body } },
+                { $push: { comments: { ...req.body, createdAt: new Date(), updatedAt: new Date() } } },
                 { runValidators: true, new: true, useFindAndModify: false }
             )
             if (result) res.send(result.comments[result.comments.length - 1])
@@ -168,7 +168,7 @@ blogPostRouter.put("/:id/comment/:commentId", async (req, res, next) => {
     try {
         const blogPost = await blogModel.findOneAndUpdate(
             { _id: req.params.id, "comments._id": req.params.commentId },
-            { $set: { "comments.$": req.body } },
+            { $set: { "comments.$": { ...req.body, _id: req.params.commentId, updatedAt: new Date() } } },
             { runValidators: true, new: true, useFindAndModify: false }
         )
 
