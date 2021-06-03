@@ -99,9 +99,8 @@ userRouter.post("/:id/avatar", upload, async (req, res, next) => {
             { useFindAndModify: false }
         )
 
-        if (result) res.status(200).send("Deleted")
+        if (result) res.status(200).send(result)
         else createError(400, "ID not found")
-        res.status(200).send("OK")
     } catch (error) {
         next(error)
     }
