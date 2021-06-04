@@ -53,7 +53,8 @@ server.route("/").get((req, res, next) => {
 server.use("/docs", swaggerUI.serve, swaggerUI.setup(YAML.load(ymlAPI)))
 //server.use("/docs", swaggerUI.serve, swaggerUI.setup( YAML.load( YAML.parse( JSON.stringify( jsonAPI)))))
 
-server.use(cors(corsOptions))
+//server.use(cors(corsOptions))
+server.use(cors())
 server.use(express.static(staticPath))
 
 // ### EMAIL TEST

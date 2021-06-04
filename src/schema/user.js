@@ -7,7 +7,7 @@ const userSchema = new Schema(
         name: { type: String, required: true },
         surname: { type: String, required: true },
         avatar: { type: String, default: "https://via.placeholder.com/420?text=User%20Avatar" },
-        description: { type: String, default: "" }
+        description: { type: String, required: true }
     },
     { timestamps: true }
 )

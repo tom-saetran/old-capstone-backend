@@ -13,7 +13,7 @@ blogPostRouter.get("/", async (req, res, next) => {
     try {
         const query = q2m(req.query)
         const total = await blogModel.countDocuments(query.criteria)
-        const limit = 5
+        const limit = 100
         const result = await blogModel
             .find(query.criteria)
             .sort(query.options.sort)

@@ -14,10 +14,6 @@ const blogSchema = new Schema(
         category: { type: String, required: true },
         title: { type: String, required: true },
         cover: { type: String, default: "https://via.placeholder.com/420x200?text=Cover%20Banner" },
-        readTime: {
-            value: { type: Number, required: true, min: 1, max: 5 },
-            unit: { type: String, required: true }
-        },
         author: { type: Schema.Types.ObjectId, ref: "User", required: true },
         content: { type: String, required: true },
         comments: { type: [commentSchema], default: [] },
