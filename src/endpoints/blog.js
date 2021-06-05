@@ -44,14 +44,16 @@ blogPostRouter.post("/", blogValidator, async (req, res, next) => {
         const result = new blogModel(entry)
 
         if (await result.save()) {
-            const userUpdate = await userModel.findByIdAndUpdate(
-                result.author,
-                { $push: { blogs: result._id } },
-                { runValidators: true, new: true, useFindAndModify: false }
+            if (
+                await userModel.findByIdAndUpdate(
+                    result.author,
+                    { $push: { blogs: result._id } },
+                    { runValidators: true, new: true, useFindAndModify: false }
+                )
             )
-        }
-
-        res.status(201).send(_id)
+                res.status(201).send(result._id)
+            else next(createError(400, "author id is invalid"))
+        } else next(createError(500, "Error saving data!"))
     } catch (error) {
         next(error)
     }
