@@ -63,6 +63,7 @@ userRouter.put("/:id", userSignup, async (req, res, next) => {
             new: true,
             useFindAndModify: false
         })
+
         if (!result) next(createError(400, "ID not found"))
         else res.status(200).send(result)
     } catch (error) {
@@ -97,6 +98,7 @@ userRouter.post("/:id/avatar", upload, async (req, res, next) => {
             { $set: { avatar: req.file.path } },
             { new: true, useFindAndModify: false }
         )
+
         if (result) res.status(200).send(result)
         else next(createError(400, "ID not found"))
     } catch (error) {
@@ -125,6 +127,7 @@ userRouter.post("/:id/purchaseHistory/", async (req, res, next) => {
                 { $push: { purchaseHistory: bookToInsert } },
                 { runValidators: true, new: true, useFindAndModify: false }
             )
+
             if (updatedUser) res.send(updatedUser)
             else next(createError(404, `User ${req.params.id} not found`))
         } else next(createError(404, `Book ${req.body.bookId} not found`))
@@ -139,6 +142,7 @@ userRouter.get("/:id/purchaseHistory/", async (req, res, next) => {
             purchaseHistory: 1,
             _id: 0
         })
+
         if (user) res.send(user.purchaseHistory)
         else next(createError(404, `User ${req.params.id} not found`))
     } catch (error) {
@@ -152,6 +156,7 @@ userRouter.get("/:id/purchaseHistory/:bookId", async (req, res, next) => {
             { _id: req.params.id },
             { purchaseHistory: { $elemMatch: { _id: req.params.bookId } } }
         )
+
         if (user) {
             if (user.purchaseHistory && user.purchaseHistory.length > 0) res.send(user.purchaseHistory[0])
             else next(createError(404, `Book ${req.params.bookId} not found in purchase history`))
@@ -168,6 +173,7 @@ userRouter.delete("/:id/purchaseHistory/:bookId", async (req, res, next) => {
             { $pull: { purchaseHistory: { _id: req.params.bookId } } },
             { new: true, useFindAndModify: false }
         )
+
         if (user) res.send(user)
         else next(createError(404, `Student ${req.params.id} not found`))
     } catch (error) {
@@ -178,16 +184,9 @@ userRouter.delete("/:id/purchaseHistory/:bookId", async (req, res, next) => {
 userRouter.put("/:id/purchaseHistory/:bookId", async (req, res, next) => {
     try {
         const user = await userModel.findOneAndUpdate(
-            {
-                _id: req.params.id,
-                "purchaseHistory._id": req.params.bookId
-            },
+            { _id: req.params.id, "purchaseHistory._id": req.params.bookId },
             { $set: { "purchaseHistory.$": req.body } },
-            {
-                runValidators: true,
-                new: true,
-                useFindAndModify: false
-            }
+            { runValidators: true, new: true, useFindAndModify: false }
         )
         if (user) {
             res.send(user)
@@ -195,8 +194,7 @@ userRouter.put("/:id/purchaseHistory/:bookId", async (req, res, next) => {
             next(createError(404, `Student ${req.params.id} not found`))
         }
     } catch (error) {
-        console.log(error)
-        next(createError(500, "An error occurred while deleting student"))
+        next(error)
     }
 })
 

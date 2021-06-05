@@ -64,6 +64,7 @@ blogPostRouter.post("/:id/cover", upload, async (req, res, next) => {
             { $set: { cover: req.file.path } },
             { new: true, useFindAndModify: false }
         )
+
         if (result) res.status(200).send(result)
         else next(createError(400, "ID not found"))
     } catch (error) {
@@ -78,6 +79,7 @@ blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
             { ...req.body, updatedAt: new Date() },
             { runValidators: true, new: true, useFindAndModify: false }
         )
+
         if (result) res.status(200).send(result)
         else next(createError(400, "ID not found"))
     } catch (error) {
@@ -113,6 +115,7 @@ blogPostRouter.post("/:id", async (req, res, next) => {
                 { $push: { comments: { ...req.body, createdAt: new Date(), updatedAt: new Date() } } },
                 { runValidators: true, new: true, useFindAndModify: false }
             )
+
             if (result) res.send(result.comments[result.comments.length - 1])
             else next(createError(404, `Failed to add comment to ${req.params.id}`))
         } else next(createError(404, `Blog Post ${req.params.id} not found`))
@@ -127,6 +130,7 @@ blogPostRouter.get("/:id/comments/", async (req, res, next) => {
             comments: 1,
             _id: 0
         })
+
         if (blogPost) res.send(blogPost.comments)
         else next(createError(404, `Blog Post ${req.params.id} not found`))
     } catch (error) {
