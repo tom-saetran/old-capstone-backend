@@ -30,7 +30,7 @@ blogPostRouter.get("/", async (req, res, next) => {
 
 blogPostRouter.get("/:id", async (req, res, next) => {
     try {
-        const result = await blogModel.findById(req.params.id).populate("author")
+        const result = await blogModel.findById(req.params.id).populate("author").populate("comments.author")
         if (!result) next(createError(400, "id not found"))
         else res.status(200).send(result)
     } catch (error) {
