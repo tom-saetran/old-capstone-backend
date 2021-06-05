@@ -20,7 +20,7 @@ userRouter.get("/", async (req, res, next) => {
             .sort(query.options.sort)
             .skip(query.options.skip || 0)
             .limit(query.options.limit && query.options.limit < limit ? query.options.limit : limit)
-            .populate("blogs")
+
         res.status(200).send({ links: query.links("/users", total), total, result })
     } catch (error) {
         next(error)
@@ -39,7 +39,7 @@ userRouter.get("/asCSV", (req, res, next) => {
 
 userRouter.get("/:id", async (req, res, next) => {
     try {
-        const result = await userModel.findById(req.params.id)
+        const result = await userModel.findById(req.params.id).populate("blogs")
         if (!result) next(createError(400, "id not found"))
         else res.status(200).send(result)
     } catch (error) {
