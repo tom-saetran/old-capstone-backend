@@ -20,6 +20,7 @@ userRouter.get("/", async (req, res, next) => {
             .sort(query.options.sort)
             .skip(query.options.skip || 0)
             .limit(query.options.limit && query.options.limit < limit ? query.options.limit : limit)
+            .populate("blogs")
         res.status(200).send({ links: query.links("/users", total), total, result })
     } catch (error) {
         next(error)
