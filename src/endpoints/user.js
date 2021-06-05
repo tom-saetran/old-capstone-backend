@@ -4,6 +4,7 @@ import { userSignup } from "../handlers/validators.js"
 import { v2 as cloudinary } from "cloudinary"
 import { CloudinaryStorage } from "multer-storage-cloudinary"
 import q2m from "query-to-mongo"
+import createError from "http-errors"
 
 import userModel from "../schema/user.js"
 
