@@ -42,8 +42,8 @@ const userSchema = new Schema(
         biograpghy: { type: String, default: "" },
         blogs: [{ type: Schema.Types.ObjectId, ref: "Blog", required: true }],
         experiences: { type: [experienceSchema], default: [] },
-        education: { type: [educationSchema], default: [] },
-        education: { type: [employmentSchema], default: [] }
+        educations: { type: [educationSchema], default: [] },
+        employments: { type: [employmentSchema], default: [] }
     },
     { timestamps: true }
 )
