@@ -20,6 +20,7 @@ blogPostRouter.get("/", async (req, res, next) => {
             .skip(query.options.skip || 0)
             .limit(query.options.limit && query.options.limit < limit ? query.options.limit : limit)
             .populate("author")
+            .populate("comments.author")
         res.status(200).send({ links: query.links("/blogs", total), total, result })
     } catch (error) {
         next(error)
