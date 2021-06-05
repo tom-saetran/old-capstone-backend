@@ -62,7 +62,7 @@ blogPostRouter.post("/:id/cover", upload, async (req, res, next) => {
         const result = await blogModel.findByIdAndUpdate(
             req.params.id,
             { $set: { cover: req.file.path } },
-            { useFindAndModify: false }
+            { new: true, useFindAndModify: false }
         )
         if (result) res.status(200).send(result)
         else createError(400, "ID not found")

@@ -94,7 +94,7 @@ userRouter.post("/:id/avatar", upload, async (req, res, next) => {
         const result = await userModel.findByIdAndUpdate(
             req.params.id,
             { $set: { avatar: req.file.path } },
-            { useFindAndModify: false }
+            { new: true, useFindAndModify: false }
         )
 
         if (result) res.status(200).send(result)
