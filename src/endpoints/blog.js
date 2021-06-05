@@ -5,6 +5,7 @@ import { v2 as cloudinary } from "cloudinary"
 import { CloudinaryStorage } from "multer-storage-cloudinary"
 import createError from "http-errors"
 import blogModel from "../schema/blog.js"
+import userModel from "../schema/user.js"
 import q2m from "query-to-mongo"
 
 const blogPostRouter = express.Router()
@@ -40,8 +41,16 @@ blogPostRouter.get("/:id", async (req, res, next) => {
 blogPostRouter.post("/", blogValidator, async (req, res, next) => {
     try {
         const entry = req.body
-        const newUser = new blogModel(entry)
-        const { _id } = await newUser.save()
+        const result = new blogModel(entry)
+
+        if (await result.save()) {
+            const userUpdate = await userModel.findByIdAndUpdate(
+                result.author,
+                { $push: { blogs: result._id } },
+                { runValidators: true, new: true, useFindAndModify: false }
+            )
+        }
+
         res.status(201).send(_id)
     } catch (error) {
         next(error)
@@ -116,8 +125,9 @@ blogPostRouter.post("/:id", async (req, res, next) => {
                 { runValidators: true, new: true, useFindAndModify: false }
             )
 
-            if (result) res.send(result.comments[result.comments.length - 1])
-            else next(createError(404, `Failed to add comment to ${req.params.id}`))
+            if (result) {
+                res.send(result.comments[result.comments.length - 1])
+            } else next(createError(404, `Failed to add comment to ${req.params.id}`))
         } else next(createError(404, `Blog Post ${req.params.id} not found`))
     } catch (error) {
         next(error)
