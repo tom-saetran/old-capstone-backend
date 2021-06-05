@@ -5,6 +5,7 @@ const { Schema, model } = mongoose
 const commentSchema = new Schema({
     comment: { type: String, required: true },
     rating: { type: Number, min: 1, max: 5, required: true },
+    author: { type: Schema.Types.ObjectId, ref: "User", required: true },
     createdAt: { type: Date, default: new Date() },
     updatedAt: { type: Date, default: new Date() }
 })
