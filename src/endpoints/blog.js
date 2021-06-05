@@ -30,7 +30,7 @@ blogPostRouter.get("/", async (req, res, next) => {
 blogPostRouter.get("/:id", async (req, res, next) => {
     try {
         const result = await blogModel.findById(req.params.id).populate("author")
-        if (!result) createError(400, "id not found")
+        if (!result) next(createError(400, "id not found"))
         else res.status(200).send(result)
     } catch (error) {
         next(error)
@@ -65,7 +65,7 @@ blogPostRouter.post("/:id/cover", upload, async (req, res, next) => {
             { new: true, useFindAndModify: false }
         )
         if (result) res.status(200).send(result)
-        else createError(400, "ID not found")
+        else next(createError(400, "ID not found"))
     } catch (error) {
         next(error)
     }
@@ -79,7 +79,7 @@ blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
             { runValidators: true, new: true, useFindAndModify: false }
         )
         if (result) res.status(200).send(result)
-        else createError(400, "ID not found")
+        else next(createError(400, "ID not found"))
     } catch (error) {
         next(error)
     }
@@ -89,7 +89,7 @@ blogPostRouter.delete("/:id", async (req, res, next) => {
     try {
         const result = await blogModel.findByIdAndRemove(req.params.id, { useFindAndModify: false })
         if (result) res.status(200).send("Deleted")
-        else createError(400, "ID not found")
+        else next(createError(400, "ID not found"))
     } catch (error) {
         next(error)
     }
@@ -114,8 +114,8 @@ blogPostRouter.post("/:id", async (req, res, next) => {
                 { runValidators: true, new: true, useFindAndModify: false }
             )
             if (result) res.send(result.comments[result.comments.length - 1])
-            else createError(404, `Failed to add comment to ${req.params.id}`)
-        } else createError(404, `Blog Post ${req.params.id} not found`)
+            else next(createError(404, `Failed to add comment to ${req.params.id}`))
+        } else next(createError(404, `Blog Post ${req.params.id} not found`))
     } catch (error) {
         next(error)
     }
@@ -128,7 +128,7 @@ blogPostRouter.get("/:id/comments/", async (req, res, next) => {
             _id: 0
         })
         if (blogPost) res.send(blogPost.comments)
-        else createError(404, `Blog Post ${req.params.id} not found`)
+        else next(createError(404, `Blog Post ${req.params.id} not found`))
     } catch (error) {
         next(error)
     }
@@ -143,8 +143,8 @@ blogPostRouter.get("/:id/comments/:commentId", async (req, res, next) => {
 
         if (blogPost) {
             if (blogPost.comments && blogPost.comments.length > 0) res.send(blogPost.comments[0])
-            else createError(404, `Comment ${req.params.commentId} not found`)
-        } else createError(404, `Blog Post ${req.params.id} not found`)
+            else next(createError(404, `Comment ${req.params.commentId} not found`))
+        } else next(createError(404, `Blog Post ${req.params.id} not found`))
     } catch (error) {
         next(error)
     }
@@ -159,7 +159,7 @@ blogPostRouter.delete("/:id/comment/:commentId", async (req, res, next) => {
         )
 
         if (blogPost) res.send(blogPost)
-        else createError(404, `Blog Post ${req.params.id} not found`)
+        else next(createError(404, `Blog Post ${req.params.id} not found`))
     } catch (error) {
         next(error)
     }
@@ -174,7 +174,7 @@ blogPostRouter.put("/:id/comment/:commentId", async (req, res, next) => {
         )
 
         if (blogPost) res.send(blogPost)
-        else createError(404, `Blog Post ${req.params.id} not found`)
+        else next(createError(404, `Blog Post ${req.params.id} not found`))
     } catch (error) {
         next(error)
     }
