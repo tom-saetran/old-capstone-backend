@@ -136,6 +136,44 @@ blogPostRouter.post("/:id", async (req, res, next) => {
     }
 })
 
+blogPostRouter.post("/:id/like", async (req, res, next) => {
+    try {
+        const blogPost = await blogModel.findById(req.params.id)
+        if (blogPost) {
+            const result = await blogModel.findByIdAndUpdate(
+                req.params.id,
+                { $addToSet: { likes: req.body.id } },
+                { runValidators: true, new: true, useFindAndModify: false }
+            )
+
+            if (result) {
+                res.send(result.comments[result.comments.length - 1])
+            } else next(createError(404, `Failed to add comment to ${req.params.id}`))
+        } else next(createError(404, `Blog Post ${req.params.id} not found`))
+    } catch (error) {
+        next(error)
+    }
+})
+
+blogPostRouter.post("/:id/unlike", async (req, res, next) => {
+    try {
+        const blogPost = await blogModel.findById(req.params.id)
+        if (blogPost) {
+            const result = await blogModel.findByIdAndUpdate(
+                req.params.id,
+                { $pull: { likes: req.body.id } },
+                { runValidators: true, new: true, useFindAndModify: false }
+            )
+
+            if (result) {
+                res.send(result.comments[result.comments.length - 1])
+            } else next(createError(404, `Failed to add comment to ${req.params.id}`))
+        } else next(createError(404, `Blog Post ${req.params.id} not found`))
+    } catch (error) {
+        next(error)
+    }
+})
+
 blogPostRouter.get("/:id/comments/", async (req, res, next) => {
     try {
         const blogPost = await blogModel.findById(req.params.id, {

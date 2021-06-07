@@ -17,7 +17,7 @@ const blogSchema = new Schema(
         author: { type: Schema.Types.ObjectId, ref: "User", required: true },
         content: { type: String, required: true },
         comments: { type: [commentSchema], default: [] },
-        likes: { type: Number, default: 0 }
+        likes: [{ type: Schema.Types.ObjectId, ref: "User", required: true }]
     },
     { timestamps: true }
 )
