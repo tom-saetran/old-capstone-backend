@@ -143,7 +143,7 @@ blogPostRouter.post("/:id/like", async (req, res, next) => {
             const result = await blogModel.findByIdAndUpdate(
                 req.params.id,
                 { $addToSet: { likes: req.body.id } },
-                { runValidators: true, new: true, useFindAndModify: false }
+                { timestamps: false, runValidators: true, new: true, useFindAndModify: false }
             )
 
             if (result) {
@@ -162,7 +162,7 @@ blogPostRouter.post("/:id/unlike", async (req, res, next) => {
             const result = await blogModel.findByIdAndUpdate(
                 req.params.id,
                 { $pull: { likes: req.body.id } },
-                { runValidators: true, new: true, useFindAndModify: false }
+                { timestamps: false, runValidators: true, new: true, useFindAndModify: false }
             )
 
             if (result) {
