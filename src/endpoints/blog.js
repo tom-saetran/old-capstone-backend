@@ -224,7 +224,7 @@ blogPostRouter.put("/:id/comment/:commentId", async (req, res, next) => {
         const blogPost = await blogModel.findOneAndUpdate(
             { _id: req.params.id, "comments._id": req.params.commentId },
             { $set: { "comments.$": { ...req.body, _id: req.params.commentId, updatedAt: new Date() } } },
-            { runValidators: true, new: true, useFindAndModify: false }
+            { timestamps: false, runValidators: true, new: true, useFindAndModify: false }
         )
 
         if (blogPost) res.send(blogPost)
