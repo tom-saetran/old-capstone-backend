@@ -124,7 +124,7 @@ blogPostRouter.post("/:id", async (req, res, next) => {
             const result = await blogModel.findByIdAndUpdate(
                 req.params.id,
                 { $push: { comments: { ...req.body, createdAt: new Date(), updatedAt: new Date() } } },
-                { runValidators: true, new: true, useFindAndModify: false }
+                { timestamps: false, runValidators: true, new: true, useFindAndModify: false }
             )
 
             if (result) {
