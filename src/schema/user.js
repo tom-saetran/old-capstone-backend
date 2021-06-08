@@ -40,6 +40,11 @@ const userSchema = new Schema(
         avatar: { type: String, default: "https://via.placeholder.com/420?text=User%20Avatar" },
         description: { type: String, required: true },
         biograpghy: { type: String, default: "" },
+        roles: {
+            isAdministrator: { type: String, default: false, immutable: true },
+            isSuperUser: { type: String, default: false, immutable: true },
+            isModerator: { type: String, default: false, immutable: true }
+        },
         blogs: [{ type: Schema.Types.ObjectId, ref: "Blog", required: true }],
         experiences: { type: [experienceSchema], default: [] },
         educations: { type: [educationSchema], default: [] },
