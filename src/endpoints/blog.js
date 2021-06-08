@@ -100,8 +100,9 @@ blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
 
 blogPostRouter.delete("/:id", async (req, res, next) => {
     try {
-        const result = await blogModel.findByIdAndRemove(req.params.id, { useFindAndModify: false })
-        if (result) res.status(200).send("Deleted")
+        const result1 = await blogModel.findByIdAndRemove(req.params.id, { useFindAndModify: false })
+        const result2 = await userModel.blogs.findByIdAndRemove(req.params.id, { useFindAndModify: false })
+        if (result1 && result2) res.status(200).send("Deleted")
         else next(createError(400, "ID not found"))
     } catch (error) {
         next(error)
@@ -146,9 +147,8 @@ blogPostRouter.post("/:id/like", async (req, res, next) => {
                 { timestamps: false, runValidators: true, new: true, useFindAndModify: false }
             )
 
-            if (result) {
-                res.send(result.comments[result.comments.length - 1])
-            } else next(createError(404, `Failed to add comment to ${req.params.id}`))
+            if (result) res.send(true)
+            else next(createError(404, `Failed to add comment to ${req.params.id}`))
         } else next(createError(404, `Blog Post ${req.params.id} not found`))
     } catch (error) {
         next(error)
@@ -165,9 +165,8 @@ blogPostRouter.post("/:id/unlike", async (req, res, next) => {
                 { timestamps: false, runValidators: true, new: true, useFindAndModify: false }
             )
 
-            if (result) {
-                res.send(result.comments[result.comments.length - 1])
-            } else next(createError(404, `Failed to add comment to ${req.params.id}`))
+            if (result) res.send(true)
+            else next(createError(404, `Failed to add comment to ${req.params.id}`))
         } else next(createError(404, `Blog Post ${req.params.id} not found`))
     } catch (error) {
         next(error)
