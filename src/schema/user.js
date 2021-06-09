@@ -41,9 +41,9 @@ const userSchema = new Schema(
         description: { type: String, required: true },
         biograpghy: { type: String, default: "" },
         roles: {
-            isAdministrator: { type: String, default: false, immutable: true, required: true },
-            isSuperUser: { type: String, default: false, immutable: true, required: true },
-            isModerator: { type: String, default: false, immutable: true, required: true }
+            isAdministrator: { type: Boolean, default: false, immutable: true, required: true },
+            isSuperUser: { type: Boolean, default: false, immutable: true, required: true },
+            isModerator: { type: Boolean, default: false, immutable: true, required: true }
         },
         blogs: [{ type: Schema.Types.ObjectId, ref: "Blog", required: true }],
         experiences: { type: [experienceSchema], default: [] },
