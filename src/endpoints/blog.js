@@ -7,6 +7,7 @@ import createError from "http-errors"
 import blogModel from "../schema/blog.js"
 import userModel from "../schema/user.js"
 import q2m from "query-to-mongo"
+import blog from "../schema/blog.js"
 
 const blogPostRouter = express.Router()
 
@@ -100,10 +101,17 @@ blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
 
 blogPostRouter.delete("/:id", async (req, res, next) => {
     try {
-        const result1 = await blogModel.findByIdAndRemove(req.params.id, { useFindAndModify: false })
-        const result2 = await userModel.blogs.findByIdAndRemove(req.params.id, { useFindAndModify: false })
-        if (result1 && result2) res.status(200).send("Deleted")
-        else next(createError(400, "ID not found"))
+        const blog = await blogModel.findById(req.params.id)
+        if (blog) {
+            await userModel.findByIdAndUpdate(
+                blog.author,
+                { $pull: { blogs: req.params.id } },
+                { timestamps: false, useFindAndModify: false }
+            )
+
+            blog.remove()
+            res.send("Deleted")
+        } else next(createError(404, `ID ${req.params.id} not found`))
     } catch (error) {
         next(error)
     }
