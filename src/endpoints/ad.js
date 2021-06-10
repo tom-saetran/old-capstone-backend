@@ -7,6 +7,15 @@ const adRouter = express.Router()
 adRouter.get("/", async (req, res, next) => {
     try {
         const all = await adModel.find()
+        res.status(200).send(all)
+    } catch (error) {
+        next(error)
+    }
+})
+
+adRouter.get("/some", async (req, res, next) => {
+    try {
+        const all = await adModel.find()
         const some = () =>
             all
                 .map(a => [a, Math.random()])
