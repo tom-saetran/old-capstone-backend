@@ -1,18 +1,17 @@
 import express from "express"
 import cors from "cors"
-import uniqid from "uniqid"
-import fs from "fs-extra"
 import listEndpoints from "express-list-endpoints"
 import swaggerUI from "swagger-ui-express"
 import YAML from "yamljs"
 import mongoose from "mongoose"
 
 import { errorBadRequest, errorForbidden, errorNotFound, errorDefault } from "./handlers/errors.js"
-import { staticPath, loggerJSON, notAnAPI } from "./handlers/files.js"
+import { staticPath, notAnAPI } from "./handlers/files.js"
 import userRouter from "./endpoints/user.js"
 import blogPostRouter from "./endpoints/blog.js"
+import adRouter from "./endpoints/ad.js"
 import sendEmailTest from "./handlers/email.js"
-import { ymlAPI, jsonAPI } from "./handlers/files.js"
+import { ymlAPI } from "./handlers/files.js"
 
 import createError from "http-errors"
 
@@ -104,6 +103,7 @@ server.use(logger)
 // ##### Routes #####
 server.use("/users", userRouter)
 server.use("/blogs", blogPostRouter)
+server.use("/ads", adRouter)
 
 // ##### Error Handlers #####
 server.use(errorBadRequest)

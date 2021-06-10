@@ -57,6 +57,14 @@ userRouter.post("/", userSignup, async (req, res, next) => {
     }
 })
 
+userRouter.post("/updateDB", async (req, res, next) => {
+    try {
+        if (userModel.validate()) res.status(200).send("DB Updated")
+    } catch (error) {
+        next(error)
+    }
+})
+
 userRouter.put("/:id", userSignup, async (req, res, next) => {
     try {
         const result = await userModel.findByIdAndUpdate(req.params.id, req.body, {

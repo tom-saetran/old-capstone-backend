@@ -46,9 +46,9 @@ const userSchema = new Schema(
             isModerator: { type: Boolean, default: false, immutable: true, required: true }
         },
         blogs: [{ type: Schema.Types.ObjectId, ref: "Blog", required: true }],
-        experiences: { type: [experienceSchema], default: [] },
-        educations: { type: [educationSchema], default: [] },
-        employments: { type: [employmentSchema], default: [] }
+        experiences: { type: [experienceSchema], default: [], required: true },
+        educations: { type: [educationSchema], default: [], required: true },
+        employments: { type: [employmentSchema], default: [], required: true }
     },
     { timestamps: true }
 )
