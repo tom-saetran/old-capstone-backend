@@ -102,11 +102,7 @@ const upload = multer({
 userRouter.post("/:id/avatar", upload, async (req, res, next) => {
     try {
         console.log(req.file)
-        const result = await userModel.findByIdAndUpdate(
-            req.params.id,
-            { $set: { avatar: req.file.path } },
-            { new: true, useFindAndModify: false }
-        )
+        const result = await userModel.findByIdAndUpdate(req.params.id, { $set: { avatar: req.file.path } }, { new: true, useFindAndModify: false })
 
         if (result) res.status(200).send(result)
         else next(createError(400, "ID not found"))
@@ -161,10 +157,7 @@ userRouter.get("/:id/purchaseHistory/", async (req, res, next) => {
 
 userRouter.get("/:id/purchaseHistory/:bookId", async (req, res, next) => {
     try {
-        const user = await userModel.findOne(
-            { _id: req.params.id },
-            { purchaseHistory: { $elemMatch: { _id: req.params.bookId } } }
-        )
+        const user = await userModel.findOne({ _id: req.params.id }, { purchaseHistory: { $elemMatch: { _id: req.params.bookId } } })
 
         if (user) {
             if (user.purchaseHistory && user.purchaseHistory.length > 0) res.send(user.purchaseHistory[0])

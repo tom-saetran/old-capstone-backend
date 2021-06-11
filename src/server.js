@@ -4,17 +4,13 @@ import listEndpoints from "express-list-endpoints"
 import swaggerUI from "swagger-ui-express"
 import YAML from "yamljs"
 import mongoose from "mongoose"
-
-import { errorBadRequest, errorForbidden, errorNotFound, errorDefault } from "./handlers/errors.js"
 import { staticPath, notAnAPI } from "./handlers/files.js"
 import userRouter from "./endpoints/user.js"
 import blogPostRouter from "./endpoints/blog.js"
 import adRouter from "./endpoints/ad.js"
 import sendEmailTest from "./handlers/email.js"
 import { ymlAPI } from "./handlers/files.js"
-
 import createError from "http-errors"
-
 import logModel from "./schema/log.js"
 
 const server = express()
@@ -106,10 +102,10 @@ server.use("/blogs", blogPostRouter)
 server.use("/ads", adRouter)
 
 // ##### Error Handlers #####
-server.use(errorBadRequest)
-server.use(errorForbidden)
-server.use(errorNotFound)
-server.use(errorDefault)
+const handleError = (err, req, res) => {
+    res.status(err.status).send(err.message)
+}
+server.use(handleError)
 
 // ##### Start Server #####
 mongoose.connect(process.env.MONGO_CONNECTION, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {

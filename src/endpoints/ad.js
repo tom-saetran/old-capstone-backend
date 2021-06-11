@@ -19,9 +19,7 @@ adRouter.get("/some", async (req, res, next) => {
         const some = () =>
             all
                 .map(a => [a, Math.random()])
-                .sort((a, b) => {
-                    return a[1] < b[1] ? -1 : 1
-                })
+                .sort((a, b) => (a[1] < b[1] ? -1 : 1))
                 .slice(0, 4 + Math.random() * 2)
                 .map(a => a[0])
 
@@ -37,7 +35,8 @@ adRouter.get("/:id", async (req, res, next) => {
         if (!result) next(createError(400, "id not found"))
         else res.status(200).send(result)
     } catch (error) {
-        next(error)
+        console.log(error)
+        next(error.message)
     }
 })
 

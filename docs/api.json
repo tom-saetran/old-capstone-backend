@@ -1,48 +1,46 @@
 {
-  "swagger": "2.0",
-  "info": {
-    "title": "My API",
-    "description": "Description",
-    "version": "1.0.0"
-  },
-  "host": "localhost:3000",
-  "basePath": "/",
-  "tags": [],
-  "schemes": [
-    "http"
-  ],
-  "consumes": [],
-  "produces": [],
-  "paths": {
-    "/": {
-      "get": {
-        "tags": [],
-        "description": "",
-        "parameters": [],
-        "responses": {}
-      }
+    "swagger": "2.0",
+    "info": {
+        "title": "My API",
+        "description": "Description",
+        "version": "1.0.0"
     },
-    "/emailtest": {
-      "post": {
-        "tags": [],
-        "description": "",
-        "parameters": [
-          {
-            "name": "obj",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "example": "any"
-                }
-              }
+    "host": "localhost:3000",
+    "basePath": "/",
+    "tags": [],
+    "schemes": ["http"],
+    "consumes": [],
+    "produces": [],
+    "paths": {
+        "/": {
+            "get": {
+                "tags": [],
+                "description": "",
+                "parameters": [],
+                "responses": {}
             }
-          }
-        ],
-        "responses": {}
-      }
-    }
-  },
-  "definitions": {}
+        },
+        "/emailtest": {
+            "post": {
+                "tags": [],
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "obj",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "example": "any"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        }
+    },
+    "definitions": {}
 }

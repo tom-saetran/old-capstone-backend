@@ -7,7 +7,6 @@ import createError from "http-errors"
 import blogModel from "../schema/blog.js"
 import userModel from "../schema/user.js"
 import q2m from "query-to-mongo"
-import blog from "../schema/blog.js"
 
 const blogPostRouter = express.Router()
 
@@ -45,13 +44,7 @@ blogPostRouter.post("/", blogValidator, async (req, res, next) => {
         const result = new blogModel(entry)
 
         if (await result.save()) {
-            if (
-                await userModel.findByIdAndUpdate(
-                    result.author,
-                    { $push: { blogs: result._id } },
-                    { runValidators: true, new: true, useFindAndModify: false }
-                )
-            )
+            if (await userModel.findByIdAndUpdate(result.author, { $push: { blogs: result._id } }, { runValidators: true, new: true, useFindAndModify: false }))
                 res.status(201).send(result._id)
             else next(createError(400, "author id is invalid"))
         } else next(createError(500, "Error saving data!"))
@@ -71,11 +64,7 @@ const upload = multer({
 
 blogPostRouter.post("/:id/cover", upload, async (req, res, next) => {
     try {
-        const result = await blogModel.findByIdAndUpdate(
-            req.params.id,
-            { $set: { cover: req.file.path } },
-            { new: true, useFindAndModify: false }
-        )
+        const result = await blogModel.findByIdAndUpdate(req.params.id, { $set: { cover: req.file.path } }, { new: true, useFindAndModify: false })
 
         if (result) res.status(200).send(result)
         else next(createError(400, "ID not found"))
@@ -103,11 +92,7 @@ blogPostRouter.delete("/:id", async (req, res, next) => {
     try {
         const blog = await blogModel.findById(req.params.id)
         if (blog) {
-            await userModel.findByIdAndUpdate(
-                blog.author,
-                { $pull: { blogs: req.params.id } },
-                { timestamps: false, useFindAndModify: false }
-            )
+            await userModel.findByIdAndUpdate(blog.author, { $pull: { blogs: req.params.id } }, { timestamps: false, useFindAndModify: false })
 
             blog.remove()
             res.send("Deleted")
@@ -197,10 +182,7 @@ blogPostRouter.get("/:id/comments/", async (req, res, next) => {
 
 blogPostRouter.get("/:id/comments/:commentId", async (req, res, next) => {
     try {
-        const blogPost = await blogModel.findOne(
-            { _id: req.params.id },
-            { comments: { $elemMatch: { _id: req.params.commentId } } }
-        )
+        const blogPost = await blogModel.findOne({ _id: req.params.id }, { comments: { $elemMatch: { _id: req.params.commentId } } })
 
         if (blogPost) {
             if (blogPost.comments && blogPost.comments.length > 0) res.send(blogPost.comments[0])
