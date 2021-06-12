@@ -198,7 +198,7 @@ blogPostRouter.delete("/:id/comment/:commentId", async (req, res, next) => {
         const blogPost = await blogModel.findByIdAndUpdate(
             req.params.id,
             { $pull: { comments: { _id: req.params.commentId } } },
-            { new: true, useFindAndModify: false }
+            { new: true, useFindAndModify: false, timestamps: false }
         )
 
         if (blogPost) res.send(blogPost)
