@@ -46,7 +46,7 @@ const userSchema = new Schema(
         avatar: { type: String, default: "https://via.placeholder.com/420?text=User%20Avatar" },
         description: { type: String, required: true },
         biography: { type: String, default: "" },
-        roles: { type: [rolesSchema], required: true },
+        roles: { type: { rolesSchema }, required: true },
         blogs: [{ type: Schema.Types.ObjectId, ref: "Blog", required: true }],
         experiences: { type: [experienceSchema], default: [], required: true },
         educations: { type: [educationSchema], default: [], required: true },
