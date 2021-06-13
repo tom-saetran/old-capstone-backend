@@ -7,7 +7,7 @@ const experienceSchema = new Schema({
     description: { type: String, required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, default: "" },
-    createdAt: { type: Date, default: new Date() },
+    createdAt: { type: Date, default: new Date(), immutable: true },
     updatedAt: { type: Date, default: new Date() }
 })
 
@@ -18,7 +18,7 @@ const educationSchema = new Schema({
     institute: { type: Schema.Types.ObjectId, ref: "Institute", default: "" },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    createdAt: { type: Date, default: new Date() },
+    createdAt: { type: Date, default: new Date(), immutable: true },
     updatedAt: { type: Date, default: new Date() }
 })
 
@@ -29,8 +29,14 @@ const employmentSchema = new Schema({
     employer: { type: Schema.Types.ObjectId, ref: "Business", default: "" },
     startDate: { type: Date, required: true },
     endDate: { type: Date, default: "" },
-    createdAt: { type: Date, default: new Date() },
+    createdAt: { type: Date, default: new Date(), immutable: true },
     updatedAt: { type: Date, default: new Date() }
+})
+
+const rolesSchema = new Schema({
+    isAdministrator: { type: Boolean, default: false, immutable: true, required: true },
+    isSuperUser: { type: Boolean, default: false, immutable: true, required: true },
+    isModerator: { type: Boolean, default: false, immutable: true, required: true }
 })
 
 const userSchema = new Schema(
@@ -39,12 +45,8 @@ const userSchema = new Schema(
         surname: { type: String, required: true },
         avatar: { type: String, default: "https://via.placeholder.com/420?text=User%20Avatar" },
         description: { type: String, required: true },
-        biograpghy: { type: String, default: "" },
-        roles: {
-            isAdministrator: { type: Boolean, default: false, immutable: true, required: true },
-            isSuperUser: { type: Boolean, default: false, immutable: true, required: true },
-            isModerator: { type: Boolean, default: false, immutable: true, required: true }
-        },
+        biography: { type: String, default: "" },
+        roles: { type: [rolesSchema], required: true },
         blogs: [{ type: Schema.Types.ObjectId, ref: "Blog", required: true }],
         experiences: { type: [experienceSchema], default: [], required: true },
         educations: { type: [educationSchema], default: [], required: true },

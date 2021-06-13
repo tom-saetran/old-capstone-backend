@@ -7,6 +7,8 @@ import createError from "http-errors"
 import blogModel from "../schema/blog.js"
 import userModel from "../schema/user.js"
 import q2m from "query-to-mongo"
+import mongoose from "mongoose"
+const { isValidObjectId } = mongoose
 
 const blogPostRouter = express.Router()
 
@@ -30,9 +32,12 @@ blogPostRouter.get("/", async (req, res, next) => {
 
 blogPostRouter.get("/:id", async (req, res, next) => {
     try {
-        const result = await blogModel.findById(req.params.id).populate("author").populate("comments.author")
-        if (!result) next(createError(400, "id not found"))
-        else res.status(200).send(result)
+        let result
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else result = await blogModel.findById(req.params.id).populate("author").populate("comments.author")
+
+        if (result) res.status(200).send(result)
+        else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -46,28 +51,23 @@ blogPostRouter.post("/", blogValidator, async (req, res, next) => {
         if (await result.save()) {
             if (await userModel.findByIdAndUpdate(result.author, { $push: { blogs: result._id } }, { runValidators: true, new: true, useFindAndModify: false }))
                 res.status(201).send(result._id)
-            else next(createError(400, "author id is invalid"))
+            else next(createError(400, "Author ID is invalid"))
         } else next(createError(500, "Error saving data!"))
     } catch (error) {
         next(error)
     }
 })
 
-const cloudinaryStorage = new CloudinaryStorage({
-    cloudinary,
-    params: { folder: "avatars" }
-})
-
-const upload = multer({
-    storage: cloudinaryStorage
-}).single("cover")
-
+const cloudinaryStorage = new CloudinaryStorage({ cloudinary, params: { folder: "avatars" } })
+const upload = multer({ storage: cloudinaryStorage }).single("cover")
 blogPostRouter.post("/:id/cover", upload, async (req, res, next) => {
     try {
-        const result = await blogModel.findByIdAndUpdate(req.params.id, { $set: { cover: req.file.path } }, { new: true, useFindAndModify: false })
+        let result
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else result = await blogModel.findByIdAndUpdate(req.params.id, { $set: { cover: req.file.path } }, { new: true, useFindAndModify: false })
 
         if (result) res.status(200).send(result)
-        else next(createError(400, "ID not found"))
+        else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -75,14 +75,17 @@ blogPostRouter.post("/:id/cover", upload, async (req, res, next) => {
 
 blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
     try {
-        const result = await blogModel.findByIdAndUpdate(
-            req.params.id,
-            { ...req.body, updatedAt: new Date() },
-            { runValidators: true, new: true, useFindAndModify: false }
-        )
+        let result
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else
+            result = await blogModel.findByIdAndUpdate(
+                req.params.id,
+                { ...req.body, updatedAt: new Date() },
+                { runValidators: true, new: true, useFindAndModify: false }
+            )
 
         if (result) res.status(200).send(result)
-        else next(createError(400, "ID not found"))
+        else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -90,13 +93,16 @@ blogPostRouter.put("/:id", blogValidator, async (req, res, next) => {
 
 blogPostRouter.delete("/:id", async (req, res, next) => {
     try {
-        const blog = await blogModel.findById(req.params.id)
-        if (blog) {
-            await userModel.findByIdAndUpdate(blog.author, { $pull: { blogs: req.params.id } }, { timestamps: false, useFindAndModify: false })
+        let result
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else result = await blogModel.findById(req.params.id)
 
-            blog.remove()
+        if (result) {
+            await userModel.findByIdAndUpdate(result.author, { $pull: { blogs: req.params.id } }, { timestamps: false, useFindAndModify: false })
+
+            result.remove()
             res.send("Deleted")
-        } else next(createError(404, `ID ${req.params.id} not found`))
+        } else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -113,7 +119,10 @@ blogPostRouter.get("/:id/asPDF", (req, res, next) => {
 
 blogPostRouter.post("/:id", async (req, res, next) => {
     try {
-        const blogPost = await blogModel.findById(req.params.id)
+        let blogPost
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else blogPost = await blogModel.findById(req.params.id)
+
         if (blogPost) {
             const result = await blogModel.findByIdAndUpdate(
                 req.params.id,
@@ -124,7 +133,7 @@ blogPostRouter.post("/:id", async (req, res, next) => {
             if (result) {
                 res.send(result.comments[result.comments.length - 1])
             } else next(createError(404, `Failed to add comment to ${req.params.id}`))
-        } else next(createError(404, `Blog Post ${req.params.id} not found`))
+        } else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -132,7 +141,10 @@ blogPostRouter.post("/:id", async (req, res, next) => {
 
 blogPostRouter.post("/:id/like", async (req, res, next) => {
     try {
-        const blogPost = await blogModel.findById(req.params.id)
+        let blogPost
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else blogPost = await blogModel.findById(req.params.id)
+
         if (blogPost) {
             const result = await blogModel.findByIdAndUpdate(
                 req.params.id,
@@ -141,8 +153,8 @@ blogPostRouter.post("/:id/like", async (req, res, next) => {
             )
 
             if (result) res.send(true)
-            else next(createError(404, `Failed to add comment to ${req.params.id}`))
-        } else next(createError(404, `Blog Post ${req.params.id} not found`))
+            else next(createError(404, `Failed to add like to ${req.params.id}`))
+        } else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -150,7 +162,10 @@ blogPostRouter.post("/:id/like", async (req, res, next) => {
 
 blogPostRouter.post("/:id/unlike", async (req, res, next) => {
     try {
-        const blogPost = await blogModel.findById(req.params.id)
+        let blogPost
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else blogPost = await blogModel.findById(req.params.id)
+
         if (blogPost) {
             const result = await blogModel.findByIdAndUpdate(
                 req.params.id,
@@ -159,8 +174,8 @@ blogPostRouter.post("/:id/unlike", async (req, res, next) => {
             )
 
             if (result) res.send(true)
-            else next(createError(404, `Failed to add comment to ${req.params.id}`))
-        } else next(createError(404, `Blog Post ${req.params.id} not found`))
+            else next(createError(404, `Failed to remove like from ${req.params.id}`))
+        } else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -168,13 +183,12 @@ blogPostRouter.post("/:id/unlike", async (req, res, next) => {
 
 blogPostRouter.get("/:id/comments/", async (req, res, next) => {
     try {
-        const blogPost = await blogModel.findById(req.params.id, {
-            comments: 1,
-            _id: 0
-        })
+        let blogPost
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else blogPost = await blogModel.findById(req.params.id, { comments: 1, _id: 0 })
 
         if (blogPost) res.send(blogPost.comments)
-        else next(createError(404, `Blog Post ${req.params.id} not found`))
+        else next(createError(404, `ID ${req.params.id} not found`))
     } catch (error) {
         next(error)
     }
@@ -182,12 +196,15 @@ blogPostRouter.get("/:id/comments/", async (req, res, next) => {
 
 blogPostRouter.get("/:id/comments/:commentId", async (req, res, next) => {
     try {
-        const blogPost = await blogModel.findOne({ _id: req.params.id }, { comments: { $elemMatch: { _id: req.params.commentId } } })
+        let blogPost
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else if (!isValidObjectId(req.params.commentId)) next(createError(400, `ID ${req.params.commentId} is invalid`))
+        else blogPost = await blogModel.findOne({ _id: req.params.id }, { comments: { $elemMatch: { _id: req.params.commentId } } })
 
         if (blogPost) {
             if (blogPost.comments && blogPost.comments.length > 0) res.send(blogPost.comments[0])
             else next(createError(404, `Comment ${req.params.commentId} not found`))
-        } else next(createError(404, `Blog Post ${req.params.id} not found`))
+        } else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -195,14 +212,18 @@ blogPostRouter.get("/:id/comments/:commentId", async (req, res, next) => {
 
 blogPostRouter.delete("/:id/comment/:commentId", async (req, res, next) => {
     try {
-        const blogPost = await blogModel.findByIdAndUpdate(
-            req.params.id,
-            { $pull: { comments: { _id: req.params.commentId } } },
-            { new: true, useFindAndModify: false, timestamps: false }
-        )
+        let blogPost
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else if (!isValidObjectId(req.params.commentId)) next(createError(400, `ID ${req.params.commentId} is invalid`))
+        else
+            blogPost = await blogModel.findByIdAndUpdate(
+                req.params.id,
+                { $pull: { comments: { _id: req.params.commentId } } },
+                { new: true, useFindAndModify: false, timestamps: false }
+            )
 
         if (blogPost) res.send(blogPost)
-        else next(createError(404, `Blog Post ${req.params.id} not found`))
+        else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -210,14 +231,18 @@ blogPostRouter.delete("/:id/comment/:commentId", async (req, res, next) => {
 
 blogPostRouter.put("/:id/comment/:commentId", async (req, res, next) => {
     try {
-        const blogPost = await blogModel.findOneAndUpdate(
-            { _id: req.params.id, "comments._id": req.params.commentId },
-            { $set: { "comments.$": { ...req.body, _id: req.params.commentId, updatedAt: new Date() } } },
-            { timestamps: false, runValidators: true, new: true, useFindAndModify: false }
-        )
+        let blogPost
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else if (!isValidObjectId(req.params.commentId)) next(createError(400, `ID ${req.params.commentId} is invalid`))
+        else
+            blogPost = await blogModel.findOneAndUpdate(
+                { _id: req.params.id, "comments._id": req.params.commentId },
+                { $set: { "comments.$": { ...req.body, _id: req.params.commentId, updatedAt: new Date() } } },
+                { timestamps: false, runValidators: true, new: true, useFindAndModify: false }
+            )
 
         if (blogPost) res.send(blogPost)
-        else next(createError(404, `Blog Post ${req.params.id} not found`))
+        else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }

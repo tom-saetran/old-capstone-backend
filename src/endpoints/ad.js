@@ -31,8 +31,11 @@ adRouter.get("/some", async (req, res, next) => {
 
 adRouter.get("/:id", async (req, res, next) => {
     try {
-        const result = await adModel.findById(req.params.id)
-        if (!result) next(createError(400, "id not found"))
+        let result
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else result = await adModel.findById(req.params.id)
+
+        if (!result) next(createError(404, `ID ${req.params.id} was not found`))
         else res.status(200).send(result)
     } catch (error) {
         console.log(error)
@@ -42,7 +45,10 @@ adRouter.get("/:id", async (req, res, next) => {
 
 adRouter.post("/", async (req, res, next) => {
     try {
-        const result = new adModel(req.body)
+        let result
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else result = new adModel(req.body)
+
         if (await result.save()) res.status(201).send(result._id)
         else next(createError(500, "Error saving data!"))
     } catch (error) {
@@ -52,14 +58,17 @@ adRouter.post("/", async (req, res, next) => {
 
 adRouter.put("/:id", async (req, res, next) => {
     try {
-        const result = await adModel.findByIdAndUpdate(
-            req.params.id,
-            { ...req.body, updatedAt: new Date() },
-            { runValidators: true, new: true, useFindAndModify: false }
-        )
+        let result
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else
+            result = await adModel.findByIdAndUpdate(
+                req.params.id,
+                { ...req.body, updatedAt: new Date() },
+                { runValidators: true, new: true, useFindAndModify: false }
+            )
 
         if (result) res.status(200).send(result)
-        else next(createError(400, "ID not found"))
+        else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
@@ -67,9 +76,12 @@ adRouter.put("/:id", async (req, res, next) => {
 
 adRouter.delete("/:id", async (req, res, next) => {
     try {
-        const result = await adModel.findByIdAndDelete(req.params.id)
+        let result
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else result = await adModel.findByIdAndDelete(req.params.id)
+
         if (result) res.send("Deleted")
-        else next(createError(404, `ID ${req.params.id} not found`))
+        else next(createError(404, `ID ${req.params.id} was not found`))
     } catch (error) {
         next(error)
     }
