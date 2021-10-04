@@ -64,7 +64,12 @@ blogPostRouter.post("/:id/cover", upload, async (req, res, next) => {
     try {
         let result
         if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
-        else result = await blogModel.findByIdAndUpdate(req.params.id, { $set: { cover: req.file.path } }, { new: true, useFindAndModify: false })
+        else
+            result = await blogModel.findByIdAndUpdate(
+                req.params.id,
+                { $set: { cover: req.file.path } },
+                { new: true, useFindAndModify: false, timestamps: false }
+            )
 
         if (result) res.status(200).send(result)
         else next(createError(404, `ID ${req.params.id} was not found`))
@@ -108,12 +113,16 @@ blogPostRouter.delete("/:id", async (req, res, next) => {
     }
 })
 
-blogPostRouter.get("/:id/asPDF", (req, res, next) => {
+blogPostRouter.get("/:id/asPDF", async (req, res, next) => {
     try {
-        res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.pdf`)
-        //pipeline(generatePDFStream(), res, error => (error ? createError(500, error) : null))
+        if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
+        else {
+            const data = await blogModel.findById(req.params.id)
+            res.setHeader("Content-Disposition", `attachment; filename=${req.params.id}.pdf`)
+            pipeline(await generatePDFStream(data), res, error => (error ? createError(500, error) : null))
+        }
     } catch (error) {
-        next(error)
+        next(createError(500, error))
     }
 })
 

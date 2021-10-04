@@ -1,6 +1,6 @@
 import PdfPrinter from "pdfmake"
 
-const generatePDFStream = data => {
+const generatePDFStream = async data => {
     const fonts = {
         Roboto: {
             normal: "Helvetica",
@@ -13,7 +13,7 @@ const generatePDFStream = data => {
     const printer = new PdfPrinter(fonts)
 
     const docDefinition = {
-        content: [data]
+        content: [data.name, data.surname, data.title, data.bio]
     }
 
     const options = {

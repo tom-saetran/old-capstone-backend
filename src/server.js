@@ -66,7 +66,7 @@ server.route("/emailtest").post(async (req, res, next) => {
 })
 
 // ##### Global Middleware #####
-const logger = async (req, res, next) => {
+const logger = async (req, _, next) => {
     try {
         const entry = new logModel({
             method: req.method,
@@ -79,8 +79,8 @@ const logger = async (req, res, next) => {
     } catch (error) {
         next(error)
     }
-
-    /*const content = await fs.readJSON(loggerJSON)
+}
+/*const content = await fs.readJSON(loggerJSON)
 
     content.push({
         method: req.method,
@@ -92,8 +92,8 @@ const logger = async (req, res, next) => {
     })
 
     await fs.writeJSON(loggerJSON, content)
-    next()*/
-}
+    next()
+}*/
 server.use(logger)
 
 // ##### Routes #####

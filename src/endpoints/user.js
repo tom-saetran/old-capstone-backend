@@ -101,7 +101,12 @@ userRouter.post("/:id/avatar", upload, async (req, res, next) => {
     try {
         let result
         if (!isValidObjectId(req.params.id)) next(createError(400, `ID ${req.params.id} is invalid`))
-        else result = await userModel.findByIdAndUpdate(req.params.id, { $set: { avatar: req.file.path } }, { new: true, useFindAndModify: false })
+        else
+            result = await userModel.findByIdAndUpdate(
+                req.params.id,
+                { $set: { avatar: req.file.path } },
+                { new: true, useFindAndModify: false, timestamps: false }
+            )
 
         if (result) res.status(200).send(result)
         else next(createError(404, `ID ${req.params.id} was not found`))
